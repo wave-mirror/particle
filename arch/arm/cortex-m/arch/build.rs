@@ -5,20 +5,20 @@
 // https://opensource.org/licenses/MIT
 
 use std::env;
-use std::fs::{self, File};
+use std::fs::File;
 use std::io::Write;
 use std::path::PathBuf;
 
 fn main() {
     let target = env::var("TARGET").unwrap();
-    let out_dir = PathBuf::from(env::var("OUT_DIR").unwrap());
+    let out = PathBuf::from(env::var("OUT_DIR").unwrap());
 
     has_fpu(&target);
 
     // Put the linker script somewhere the linker can find it
     let kernel_ld = include_bytes!("kernel.ld.in");
     let mut f = if env::var_os("CARGO_FEATURE_DEVICE").is_some() {
-        let mut f = File::create(out_dir.join("kernel.ld")).unwrap();
+        let mut f = File::create(out.join("kernel.ld")).unwrap();
         f.write_all(kernel_ld).unwrap();
         // *IMPORTANT*: The weak aliases (i.e. `PROVIDED`) must come *after*
         // `EXTERN(__INTERRUPTS)`. Otherwise the linker will ignore user
@@ -31,12 +31,39 @@ fn main() {
 INCLUDE device.ld"#).unwrap();
         f
     } else {
-        let mut f = File::create(out_dir.join("kernel.ld")).unwrap();
+        let mut f = File::create(out.join("kernel.ld")).unwrap();
         f.write_all(kernel_ld).unwrap();
         f
     };
 
-    println!("cargo:rustc-link-search={}", out_dir.display());
+    let max_int_handlers = if target.starts_with("thumbv7m-") || target.starts_with("thumbv7em-") {
+        println!("cargo:rustc-cfg=cortex_m");
+        println!("cargo:rustc-cfg=armv7m");
+        240
+    } else {
+        // Non ARM target. We assume you're just testing the syntax.
+        // This value seems as soon as any
+        240
+    };
+
+    // checking the size of the interrupts portion of the vector table
+    // is sub-architecture dependent
+    writeln!(
+        f,
+        r#"
+ASSERT(SIZEOF(.vector_table) <= 0x{:x}, "
+There can't be more than {1} interrupt handlers. This may be a bug in
+your device crate, or you may have registered more than {1} interrupt
+handlers.");
+"#,
+        max_int_handlers * 4 + 0x40,
+        max_int_handlers
+    ).unwrap();
+
+    println!("cargo:rustc-link-search={}", out.display());
+
+    println!("cargo:rerun-if-changed=build.rs");
+    println!("cargo:rerun-if-changed=kernel.ld.in");
 }
 
 fn has_fpu(target: &str) {

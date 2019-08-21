@@ -9,5 +9,8 @@ edition = "2018"
 [dependencies]
 panic = { path = "lib/panic" }
 
+[target.thumbv7m-none-eabi.dependencies]
+arch = { path = "arch/arm/cortex-m/arch" }
+
 [target.thumbv7em-none-eabihf.dependencies]
 arch = { path = "arch/arm/cortex-m/arch" }

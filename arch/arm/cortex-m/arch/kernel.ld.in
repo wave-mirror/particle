@@ -1,8 +1,24 @@
 OUTPUT_FORMAT("elf32-littlearm", "elf32-littlearm", "elf32-littlearm")
 OUTPUT_ARCH(arm)
 
+INCLUDE memory.ld
+
 ENTRY(reset)
 SECTIONS
 {
-    . = ORIGIN(ROM)
+    PROVIDE(_stack_start = ORIGIN(RAM) + LENGTH(RAM));
+
+    /* ## Sections in FLASH */
+    /* ### Vector table */
+    .vector_table ORIGIN(ROM) :
+    {
+        /* Initial Stack Pointer (SP) value */
+        LONG(_stack_start);
+
+        /* Reset vector */
+        KEEP(*(.vector_table.reset_vector));
+
+        __reset_vector = .;
+
+    } > ROM
 }

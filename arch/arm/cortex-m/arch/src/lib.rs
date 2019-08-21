@@ -4,5 +4,9 @@
 // license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT
 
+//! Startup code and minimal runtime for Cortex-M microcontrollers
+//!
+
+#![deny[missing_docs]]
 #![deny(warnings)]
 #![no_std]
