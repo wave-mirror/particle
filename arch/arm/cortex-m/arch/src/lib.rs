@@ -4,11 +4,5 @@
 // license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT
 
-#![no_main]
+#![deny(warnings)]
 #![no_std]
-
-extern crate panic;
-
-fn main() {
-    loop {}
-}

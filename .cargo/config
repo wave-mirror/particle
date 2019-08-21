@@ -1,2 +1,11 @@
+[target.thumbv7em-none-eabihf]
+# uncomment this to make `cargo run` execute programs on QEMU
+# GDB: -gdb tcp::3333  -S
+runner = "qemu-system-arm -cpu cortex-m4 -machine pebble-s4-bb -nographic -semihosting-config enable=on,target=native -kernel"
+
+rustflags = [
+  "-C", "link-arg=-Tkernel.ld"
+]
+
 [build]
 target = "thumbv7em-none-eabihf" # Cortex-M4F and Cortex-M7F (with FPU)
