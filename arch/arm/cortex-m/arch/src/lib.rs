@@ -6,16 +6,17 @@
 
 //! Startup code and minimal runtime for Cortex-M microcontrollers
 //!
-
-#![deny(missing_docs)]
-#![deny(warnings)]
-#![no_std]
-
 //! - `reset`. This is the reset handler. The microcontroller will executed this
 //! function upon booting. This function will call the user program entry point
 //! (cf. [`#[entry]`]) using the `main` symbol so you may also find that symbol
 //! in your program; if you do, `main` will contain your application code. Some
 //! other times `main` gets inlined into `reset` so you won't find it.
+
+#![deny(missing_docs)]
+#![deny(warnings)]
+#![no_std]
+
+use core::sync::atomic::{self, Ordering};
 
 // Entry point
 #[doc(hidden)]
@@ -38,8 +39,6 @@ pub unsafe extern "C" fn reset() -> ! {
     }
 
     extern "Rust" {
-        fn main() -> !;
-
         fn __pre_init();
     }
 
@@ -49,10 +48,8 @@ pub unsafe extern "C" fn reset() -> ! {
     rrt0::zero_bss(&mut __sbss, &mut __ebss);
     rrt0::init_data(&mut __sdata, &mut __edata, &__sidata);
 
-    match () {
-        #[cfg(not(has_fpu))]
-        () => main(),
-    }
+    #[cfg(not(has_fpu))]
+    kmain();
 }
 
 #[doc(hidden)]
@@ -98,7 +95,7 @@ pub static __EXCEPTIONS_VECTOR: [Vector; 14] = [
     Vector { reserved: 0 },
     Vector { reserved: 0 },
     // Exception 11: SV Call Interrupt.
-    Vector { handler: svc_call },
+    Vector { handler: svc },
     // Exception 12: Debug Monitor Interrupt [not on Cortex-M0 variants].
     #[cfg(not(armv6m))]
     Vector {
@@ -131,7 +128,7 @@ extern "C" {
     #[cfg(armv8m)]
     fn secure_fault();
 
-    fn svc_call();
+    fn svc();
 
     #[cfg(not(armv6m))]
     fn debug_monitor();
@@ -139,4 +136,12 @@ extern "C" {
     fn pendsv();
 
     fn systick();
+}
+
+#[doc(hidden)]
+#[no_mangle]
+pub unsafe extern "C" fn default_handler_() -> ! {
+    loop {
+        atomic::compiler_fence(Ordering::SeqCst);
+    }
 }

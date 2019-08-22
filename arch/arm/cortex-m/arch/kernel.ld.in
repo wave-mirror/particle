@@ -7,6 +7,20 @@ INCLUDE memory.ld
 ENTRY(reset);
 EXTERN(__RESET_VECTOR); /* depends on the `reset` symbol */
 
+/* # Exception vectors */
+EXTERN(__EXCEPTIONS_VECTOR);
+PROVIDE(nmi = default_handler);
+PROVIDE(hard_fault = hard_fault_);
+PROVIDE(mem_manage = default_handler);
+PROVIDE(bus_fault = default_handler);
+PROVIDE(usage_fault = default_handler);
+PROVIDE(secure_fault = default_handler);
+PROVIDE(svc = default_handler);
+PROVIDE(debug_monitor = default_handler);
+PROVIDE(pendsv = default_handler);
+PROVIDE(systick = default_handler);
+PROVIDE(default_handler = default_handler_);
+
 /* # Pre-initialization function */
 /* If the user overrides this using the `pre_init!` macro or by creating
    a `__pre_init` function, then the function this points to will be called
@@ -32,7 +46,6 @@ SECTIONS
         KEEP(*(.vector_table.exceptions));
         __exceptions = .;
 
-
         /* Device s pecific interrupts */
         KEEP(*(.vector_table.interrupts));
     } > ROM
@@ -43,6 +56,8 @@ SECTIONS
     .text _stext :
     {
         *(.text .text.*);
+        *(.hard_fault_trampoline);
+        *(.hard_fault.*);
     } > ROM
 
     /* ### .rodata */
