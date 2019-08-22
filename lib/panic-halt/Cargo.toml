@@ -1,10 +1,11 @@
 [package]
-name = "arch"
+name = "panic-halt"
 version = "0.1.0"
 authors = ["liminghao <liminghao@xiaomi.com>"]
 edition = "2018"
+description = "A panic causes the program, or the current thread, to halt by entering an infinite loop."
+license = "MIT"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-rrt0 = { path = "../../../../lib/rrt0" }

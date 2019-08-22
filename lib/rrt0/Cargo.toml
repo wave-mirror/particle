@@ -1,5 +1,5 @@
 [package]
-name = "panic"
+name = "rrt0"
 version = "0.1.0"
 authors = ["liminghao <liminghao@xiaomi.com>"]
 edition = "2018"

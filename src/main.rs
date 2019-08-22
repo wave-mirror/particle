@@ -7,8 +7,8 @@
 #![no_main]
 #![no_std]
 
-extern crate panic;
+extern crate panic_halt;
 
-fn main() {
+fn main() -> ! {
     loop {}
 }

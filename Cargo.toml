@@ -7,7 +7,7 @@ edition = "2018"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-panic = { path = "lib/panic" }
+panic-halt = { path = "lib/panic-halt" }
 
 [target.thumbv7m-none-eabi.dependencies]
 arch = { path = "arch/arm/cortex-m/arch" }
