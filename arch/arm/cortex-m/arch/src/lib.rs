@@ -39,6 +39,8 @@ pub unsafe extern "C" fn reset() -> ! {
     }
 
     extern "Rust" {
+        fn main() -> !;
+
         fn __pre_init();
     }
 
@@ -48,8 +50,10 @@ pub unsafe extern "C" fn reset() -> ! {
     rrt0::zero_bss(&mut __sbss, &mut __ebss);
     rrt0::init_data(&mut __sdata, &mut __edata, &__sidata);
 
-    #[cfg(not(has_fpu))]
-    kmain();
+    match () {
+        #[cfg(not(has_fpu))]
+        () => main(),
+    }
 }
 
 #[doc(hidden)]
