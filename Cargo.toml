@@ -4,13 +4,13 @@ version = "0.1.0"
 authors = ["liminghao <liminghao@xiaomi.com>"]
 edition = "2018"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
 [dependencies]
-panic-halt = { path = "lib/panic-halt" }
+panic-halt = { path = "libs/panic-halt" }
+# cortex-m-rt-macros = "0.1.5"
 
 [target.thumbv7m-none-eabi.dependencies]
 arch = { path = "arch/arm/cortex-m/arch" }
+#cortex-m-rt = "0.6.10"
 
 [target.thumbv7em-none-eabihf.dependencies]
 arch = { path = "arch/arm/cortex-m/arch" }

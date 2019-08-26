@@ -16,9 +16,9 @@ fn main() {
     has_fpu(&target);
 
     // Put the linker script somewhere the linker can find it
-    let kernel_ld = include_bytes!("kernel.ld.in");
+    let kernel_ld = include_bytes!("link.x.in");
     let mut f = if env::var_os("CARGO_FEATURE_DEVICE").is_some() {
-        let mut f = File::create(out.join("kernel.ld")).unwrap();
+        let mut f = File::create(out.join("link.x")).unwrap();
         f.write_all(kernel_ld).unwrap();
         // *IMPORTANT*: The weak aliases (i.e. `PROVIDED`) must come *after*
         // `EXTERN(__INTERRUPTS)`. Otherwise the linker will ignore user
@@ -31,7 +31,7 @@ fn main() {
 INCLUDE device.ld"#).unwrap();
         f
     } else {
-        let mut f = File::create(out.join("kernel.ld")).unwrap();
+        let mut f = File::create(out.join("link.x")).unwrap();
         f.write_all(kernel_ld).unwrap();
         f
     };
@@ -63,7 +63,7 @@ handlers.");
     println!("cargo:rustc-link-search={}", out.display());
 
     println!("cargo:rerun-if-changed=build.rs");
-    println!("cargo:rerun-if-changed=kernel.ld.in");
+    println!("cargo:rerun-if-changed=link.x.in");
 }
 
 fn has_fpu(target: &str) {

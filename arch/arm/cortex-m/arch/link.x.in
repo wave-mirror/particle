@@ -1,0 +1,171 @@
+INCLUDE memory.x
+
+/* # Entry point = reset vector */
+ENTRY(reset);
+EXTERN(__RESET_VECTOR); /* depends on the `reset` symbol */
+
+/* # Exception vectors */
+EXTERN(__EXCEPTIONS);
+EXTERN(default_handler);
+PROVIDE(nmi = default_handler);
+PROVIDE(hard_fault = default_handler);
+PROVIDE(mem_manage = default_handler);
+PROVIDE(bus_fault = default_handler);
+PROVIDE(usage_fault = default_handler);
+PROVIDE(secure_fault = default_handler);
+PROVIDE(svc = default_handler);
+PROVIDE(debug_monitor = default_handler);
+PROVIDE(pendsv = default_handler);
+PROVIDE(systick = default_handler);
+/* PROVIDE(default_handler = default_handler_); */
+
+/* # Interrupt vectors */
+EXTERN(__INTERRUPTS);
+
+/* # Pre-initialization function */
+/* If the user overrides this using the `pre_init!` macro or by creating
+   a `__pre_init` function, then the function this points to will be called
+   before the RAM is initialized. */
+PROVIDE(__pre_init = default_pre_init);
+
+SECTIONS
+{
+    PROVIDE(_stack_start = ORIGIN(RAM) + LENGTH(RAM));
+
+    /* ## Sections in FLASH */
+    /* ### Vector table */
+    .vector_table ORIGIN(FLASH) :
+    {
+        /* Initial Stack Pointer (SP) value */
+        LONG(_stack_start);
+
+        /* Reset vector */
+        KEEP(*(.vector_table.reset_vector));
+        __reset_vector = .;
+
+        /* Exceptions */
+        KEEP(*(.vector_table.exceptions));
+        __eexceptions = .;
+
+        /* Device s pecific interrupts */
+        KEEP(*(.vector_table.interrupts));
+    } > FLASH
+
+    PROVIDE(_stext = ADDR(.vector_table) + SIZEOF(.vector_table));
+
+    /* ### .text */
+    .text _stext :
+    {
+        *(.text .text.*);
+        *(.hard_fault_trampoline);
+        *(.hard_fault.*);
+    } > FLASH
+
+    /* ### .rodata */
+    .rodata : ALIGN(4)
+    {
+        *(.rodata .rodata.*);
+
+        /* 4-byte align the end (VMA) of this section.
+           This is required by LLD to ensure the LMA of the following
+           .data section will have the correct alignment. */
+        . = ALIGN(4);
+    } > FLASH
+
+    /* ## Sections in RAM */
+    /* ### .data */
+    .data : ALIGN(4)
+    {
+        . = ALIGN(4);
+        __sdata = .;
+        *(.data .data.*);
+        . = ALIGN(4); /* 4-byte align the end (VMA) of this section */
+        __edata = .;
+    } > RAM AT > FLASH
+
+    /* LMA of .data */
+    __sidata = LOADADDR(.data);
+
+    /* ### .bss */
+    .bss : ALIGN(4)
+    {
+        . = ALIGN(4);
+        __sbss = .;
+        *(.bss .bss.*);
+        . = ALIGN(4);
+        __ebss = .;
+    } > RAM
+
+    /* Place the heap right after `.uninit` */
+    . = ALIGN(4);
+    __sheap = .;
+
+    /* ## .got */
+    /* Dynamic reloactions are unsupported. This section is only used to
+       detect relocatable code in the input files and raise an error if
+       relocatable code is found. */
+    .got (NOLOAD) :
+    {
+        KEEP(*(.got .got.*));
+    }
+
+    /* ## Discarded sections */
+    /DISCARD/ :
+    {
+        /* Unused exception related info that only wastes space */
+        *(.ARM.exidx);
+        *(.ARM.exidx.*);
+        *(.ARM.extab.*);
+    }
+}
+
+/* # Alignment checks */
+ASSERT(ORIGIN(FLASH) % 4 == 0, "
+ERROR(cortex-m-rt): the start of the FLASH region must be 4-byte aligned");
+
+ASSERT(ORIGIN(RAM) % 4 == 0, "
+ERROR(cortex-m-rt): the start of the RAM region must be 4-byte aligned");
+
+ASSERT(__sdata % 4 == 0 && __edata % 4 == 0, "
+BUG(cortex-m-rt): .data is not 4-byte aligned");
+
+ASSERT(__sidata % 4 == 0, "
+BUG(cortex-m-rt): the LMA of .data is not 4-byte aligned");
+
+ASSERT(__sbss % 4 == 0 && __ebss % 4 == 0, "
+BUG(cortex-m-rt): .bss is not 4-byte aligned");
+
+ASSERT(__sheap % 4 == 0, "
+BUG(cortex-m-rt): start of .heap is not 4-byte aligned");
+
+/* ## .vector_table */
+ASSERT(__reset_vector == ADDR(.vector_table) + 0x8, "
+BUG(cortex-m-rt): the reset vector is missing");
+
+ASSERT(__eexceptions == ADDR(.vector_table) + 0x40, "
+BUG(cortex-m-rt): the exception vectors are missing");
+
+ASSERT(SIZEOF(.vector_table) > 0x40, "
+ERROR(cortex-m-rt): The interrupt vectors are missing.
+Possible solutions, from most likely to less likely:
+- Link to a svd2rust generated device crate
+- Disable the 'device' feature of cortex-m-rt to build a generic application (a dependency
+may be enabling it)
+- Supply the interrupt handlers yourself. Check the documentation for details.");
+
+/* ## .text */
+ASSERT(ADDR(.vector_table) + SIZEOF(.vector_table) <= _stext, "
+ERROR(cortex-m-rt): The .text section can't be placed inside the .vector_table section
+Set _stext to an address greater than the end of .vector_table (See output of `nm`)");
+
+ASSERT(_stext + SIZEOF(.text) < ORIGIN(FLASH) + LENGTH(FLASH), "
+ERROR(cortex-m-rt): The .text section must be placed inside the FLASH memory.
+Set _stext to an address smaller than 'ORIGIN(FLASH) + LENGTH(FLASH)'");
+
+/* # Other checks */
+ASSERT(SIZEOF(.got) == 0, "
+ERROR(cortex-m-rt): .got section detected in the input object files
+Dynamic relocations are not supported. If you are linking to C code compiled using
+the 'cc' crate then modify your build script to compile the C code _without_
+the -fPIC flag. See the documentation of the `cc::Build.pic` method for details.");
+/* Do not exceed this mark in the error messages above                                    | */

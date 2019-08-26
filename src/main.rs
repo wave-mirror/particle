@@ -8,7 +8,9 @@
 #![no_std]
 
 extern crate panic_halt;
+use cortex_m_rt_macros::entry;
 
+#[entry]
 fn main() -> ! {
     loop {}
 }

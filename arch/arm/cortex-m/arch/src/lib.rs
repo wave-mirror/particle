@@ -69,7 +69,7 @@ pub union Vector {
 #[doc(hidden)]
 #[link_section = ".vector_table.exceptions"]
 #[no_mangle]
-pub static __EXCEPTIONS_VECTOR: [Vector; 14] = [
+pub static __EXCEPTIONS: [Vector; 14] = [
     // Exception 2: Non Maskable Interrupt.
     Vector { handler: nmi },
     // Exception 3: Hard Fault Interrupt.
@@ -144,8 +144,19 @@ extern "C" {
 
 #[doc(hidden)]
 #[no_mangle]
-pub unsafe extern "C" fn default_handler_() -> ! {
+pub unsafe extern "C" fn default_handler() -> ! {
     loop {
         atomic::compiler_fence(Ordering::SeqCst);
     }
 }
+
+#[doc(hidden)]
+#[link_section = ".vector_table.interrupts"]
+#[no_mangle]
+pub static __INTERRUPTS: [unsafe extern "C" fn(); 240] = [{
+    extern "C" {
+        fn default_handler();
+    }
+
+    default_handler
+}; 240];
