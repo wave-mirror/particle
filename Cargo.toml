@@ -6,11 +6,10 @@ edition = "2018"
 
 [dependencies]
 panic-halt = { path = "libs/panic-halt" }
-# cortex-m-rt-macros = "0.1.5"
+rrt0 = { path = "libs/rrt0" }
+spin = { path = "external/libs/spin" }
 
 [target.thumbv7m-none-eabi.dependencies]
-arch = { path = "arch/arm/cortex-m/arch" }
-#cortex-m-rt = "0.6.10"
+# cortex-m-semihosting = "0.3.3"
 
 [target.thumbv7em-none-eabihf.dependencies]
-arch = { path = "arch/arm/cortex-m/arch" }

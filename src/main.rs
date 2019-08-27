@@ -7,10 +7,20 @@
 #![no_main]
 #![no_std]
 
-extern crate panic_halt;
-use cortex_m_rt_macros::entry;
+extern crate alloc;
+extern crate spin;
 
-#[entry]
-fn main() -> ! {
+extern crate panic_halt;
+
+mod arch;
+mod thread;
+
+//use cortex_m_semihosting::{hprintln};
+
+pub fn kmain() -> ! {
+    thread::thread_early_init();
+    arch::arch_early_init();
+    // hprintln!("Welcome to Particle!").unwrap();
+
     loop {}
 }
