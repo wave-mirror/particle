@@ -4,7 +4,21 @@
 // license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT
 
-pub mod thread;
+use spin::{Once, RwLock};
+
+/// Thread struct
+mod thread;
+
+/// Thread struct list
+mod list;
+
+pub use self::thread::Thread;
+pub use self::list::ThreadList;
+
+static IDLE_THREAD: Once<Thread> = Once::new();
+
+/// Threads list
+static THREAD_LIST: Once<RwLock<ThreadList>> = Once::new();
 
 /// Initialize threading system
 ///

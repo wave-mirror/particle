@@ -5,12 +5,11 @@
 // https://opensource.org/licenses/MIT
 
 #![deny(warnings)]
-#![no_std]
 
-use alloc::sync::Arc;
-use alloc::boxed::Box;
-use alloc::vec::Vec;
-use spin::Mutex;
+//use alloc::sync::Arc;
+//use alloc::boxed::Box;
+//use alloc::vec::Vec;
+//use spin::Mutex;
 
 #[derive(Debug)]
 pub enum ThreadState {
@@ -30,8 +29,8 @@ pub struct Thread {
     priority: i32,
     /// The status of this thread
     state: ThreadState,
-    /// The name of this thread
-    name: Arc<Mutex<Box<[u8]>>>,
+    // The name of this thread
+    //name: Arc<Mutex<Box<[u8]>>>,
 }
 
 impl Thread {
@@ -40,7 +39,7 @@ impl Thread {
             magic: 0x70617274,  // 'part'
             priority: 0,
             state: ThreadState::Suspended,
-            name: Arc::new(Mutex::new(Vec::new().into_boxed_slice())),
+            //name: Arc::new(Mutex::new(Vec::new().into_boxed_slice())),
         }
     }
 }

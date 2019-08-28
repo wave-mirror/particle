@@ -12,8 +12,12 @@ extern crate spin;
 
 extern crate panic_halt;
 
-mod arch;
-mod thread;
+pub mod arch;
+pub mod allocator;
+pub mod thread;
+
+#[global_allocator]
+static ALLOCATOR: allocator::Allocator = allocator::Allocator;
 
 //use cortex_m_semihosting::{hprintln};
 
