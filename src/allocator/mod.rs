@@ -8,5 +8,7 @@ mod miniheap;
 
 pub use self::miniheap::Allocator;
 
-pub unsafe fn heap_init() {
+pub unsafe fn heap_init(heap_base: usize, heap_size: usize) {
+    // Initialize global heap
+    Allocator::init(heap_base, heap_size);
 }

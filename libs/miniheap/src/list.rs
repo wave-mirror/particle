@@ -4,7 +4,9 @@
 // license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT
 
+use alloc::alloc::{AllocErr, Layout};
 use core::mem::size_of;
+use core::ptr::NonNull;
 
 /// A sorted list of Node. It uses itself to store its chunks
 pub struct FreeChunkList {
@@ -13,7 +15,7 @@ pub struct FreeChunkList {
 
 impl FreeChunkList {
     /// Creates an empty 'FreeChunkList'
-    pub fn empty() -> FreeChunkList {
+    pub const fn empty() -> FreeChunkList {
         FreeChunkList {
             head: Chunk {
                 size: 0,
@@ -41,6 +43,18 @@ impl FreeChunkList {
                 next: Some(&mut *ptr),
             }
         }
+    }
+
+    /// Searches the list of a big enough hole. A chunk is big enough if it
+    /// can hold an allocation of `layout.size()` bytes with the given
+    /// `layout.align()`. If such a chunk is found in the list, a block of
+    /// the required size is allocated from it. Then the start address of
+    /// that block is returned.
+    /// This function uses the "fist fit" strategy, so it uses the first
+    /// chunk that is big enough. The runtime is O(N) but it should be
+    /// reasonably fast for small allocations.
+    pub fn allocate_first_fit(&mut self, layout: Layout) -> Result<NonNull<u8>, AllocErr> {
+        assert!(layout.size() >= self::min_size());
     }
 
     /// Returns the minimal allocation size. Smaller allocations or

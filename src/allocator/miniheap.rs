@@ -20,6 +20,14 @@ impl Allocator {
 
 unsafe impl GlobalAlloc for Allocator {
     unsafe fn alloc(&self, layout: Layout) -> *mut u8 {
+        loop {
+            let res = if let Some(ref mut heap) = *HEAP.lock() {
+                heap.allocate_first_fit(layout)
+            } else {
+                panic!("minheap_allocator: miniheap not initialized");
+            };
+            None
+        }
     }
 
     unsafe fn dealloc(&self, ptr: *mut u8, layout: Layout) {

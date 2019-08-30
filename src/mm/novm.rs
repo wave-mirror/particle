@@ -5,17 +5,21 @@
 // https://opensource.org/licenses/MIT
 
 use crate::arch::PAGE_SIZE_SHIFT;
+use crate::allocator;
 
 use cortex_m_semihosting::{hprintln};
 
-extern "C" {
-    static __end: usize;
-    static __end_of_ram: usize;
-}
-
 pub unsafe fn novm_init() {
-    let mem_start = &__end;
-    let mem_end = &__end_of_ram;
+    extern "C" {
+        static __end: usize;
+        static __end_of_ram: usize;
+    }
+
+    let mem_start = &__end as *const usize as usize;
+    let mem_end = &__end_of_ram as *const usize as usize;
     let mem_size = mem_end - mem_start;
-    //let xs:[u8; default_map_size] = [0; default_map_size];
+
+    hprintln!("start={:X}, end={:X}, size={}", mem_start, mem_end, mem_size);
+
+    allocator::heap_init(mem_start, mem_size);
 }

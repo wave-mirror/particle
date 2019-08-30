@@ -16,13 +16,14 @@ mod arch;
 
 mod mm;
 
-//pub mod allocator;
+pub mod allocator;
+
 //pub mod thread;
 
 //#[global_allocator]
 //static ALLOCATOR: allocator::Allocator = allocator::Allocator;
 
-use cortex_m_semihosting::{hprintln};
+use cortex_m_semihosting::{debug, hprintln};
 
 pub fn kmain() -> ! {
     arch::arch_early_init();
@@ -36,6 +37,9 @@ pub fn kmain() -> ! {
     unsafe {
         mm::novm::novm_init();
     }
+
+    // NOTE do not run this on hardware; it can corrupt OpenOCD state
+    debug::exit(debug::EXIT_SUCCESS);
 
     loop {}
 }
