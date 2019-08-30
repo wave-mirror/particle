@@ -5,10 +5,10 @@ authors = ["liminghao <liminghao@xiaomi.com>"]
 edition = "2018"
 
 [dependencies]
+miniheap = { path = "libs/miniheap" }
 panic-halt = { path = "libs/panic-halt" }
 rrt0 = { path = "libs/rrt0" }
 spin = { path = "external/libs/spin" }
-linked_list_allocator = { path = "external/libs/linked-list-allocator" }
 
 [target.thumbv7m-none-eabi.dependencies]
 # cortex-m-semihosting = "0.3.3"

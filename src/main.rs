@@ -22,8 +22,12 @@ static ALLOCATOR: allocator::Allocator = allocator::Allocator;
 //use cortex_m_semihosting::{hprintln};
 
 pub fn kmain() -> ! {
-    thread::thread_early_init();
     arch::arch_early_init();
+
+    allocator::heap_init();
+
+    thread::thread_early_init();
+
     // hprintln!("Welcome to Particle!").unwrap();
 
     loop {}
