@@ -6,5 +6,6 @@
 
 #[cfg(cortex_m)]
 pub mod cortex_m;
+
 #[cfg(cortex_m)]
 pub use self::cortex_m::*;

@@ -7,28 +7,35 @@
 #![no_main]
 #![no_std]
 
-extern crate alloc;
+//extern crate alloc;
 extern crate spin;
 
 extern crate panic_halt;
 
-pub mod arch;
-pub mod allocator;
-pub mod thread;
+mod arch;
 
-#[global_allocator]
-static ALLOCATOR: allocator::Allocator = allocator::Allocator;
+mod mm;
 
-//use cortex_m_semihosting::{hprintln};
+//pub mod allocator;
+//pub mod thread;
+
+//#[global_allocator]
+//static ALLOCATOR: allocator::Allocator = allocator::Allocator;
+
+use cortex_m_semihosting::{hprintln};
 
 pub fn kmain() -> ! {
     arch::arch_early_init();
 
-    allocator::heap_init();
+    //allocator::heap_init();
 
-    thread::thread_early_init();
+    //thread::thread_early_init();
 
-    // hprintln!("Welcome to Particle!").unwrap();
+    hprintln!("Welcome to Particle!").unwrap();
+
+    unsafe {
+        mm::novm::novm_init();
+    }
 
     loop {}
 }

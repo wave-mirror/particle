@@ -6,5 +6,6 @@
 
 #[cfg(target_arch = "arm")]
 pub mod arm;
+
 #[cfg(target_arch = "arm")]
 pub use self::arm::*;

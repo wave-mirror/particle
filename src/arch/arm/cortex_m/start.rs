@@ -27,7 +27,7 @@ pub static __RESET_VECTOR: unsafe extern "C" fn() -> ! = reset;
 #[no_mangle]
 pub unsafe extern "C" fn reset() -> ! {
     extern "C" {
-        // These symbols code from `kernel.ld`
+        // These symbols code from `link.ld`
         static mut __sbss: u32;
         static mut __ebss: u32;
 

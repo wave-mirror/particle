@@ -40,6 +40,7 @@ INCLUDE device.ld"#).unwrap();
     let max_int_handlers = if target.starts_with("thumbv7m-") || target.starts_with("thumbv7em-") {
         println!("cargo:rustc-cfg=cortex_m");
         println!("cargo:rustc-cfg=armv7m");
+        println!("cargo:rustc-cfg=novm");
         240
     } else {
         // Non ARM target. We assume you're just testing the syntax.

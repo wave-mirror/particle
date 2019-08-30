@@ -17,7 +17,6 @@ PROVIDE(svc = default_handler);
 PROVIDE(debug_monitor = default_handler);
 PROVIDE(pendsv = default_handler);
 PROVIDE(systick = default_handler);
-/* PROVIDE(default_handler = default_handler_); */
 
 /* # Interrupt vectors */
 EXTERN(__INTERRUPTS);
@@ -72,6 +71,13 @@ SECTIONS
         . = ALIGN(4);
     } > FLASH
 
+    /* ### .k_init */
+    .k_init : {
+        __k_init = .;
+        KEEP(*(.k_init))
+        __k_init_end = .;
+    } > FLASH
+
     /* ## Sections in RAM */
     /* ### .data */
     .data : ALIGN(4)
@@ -96,9 +102,9 @@ SECTIONS
         __ebss = .;
     } > RAM
 
-    /* Place the heap right after `.uninit` */
-    . = ALIGN(4);
-    __sheap = .;
+    __end = .;
+    . = ORIGIN(RAM) + LENGTH(RAM);
+    __end_of_ram = .;
 
     /* ## .got */
     /* Dynamic reloactions are unsupported. This section is only used to
@@ -121,50 +127,47 @@ SECTIONS
 
 /* # Alignment checks */
 ASSERT(ORIGIN(FLASH) % 4 == 0, "
-ERROR(cortex-m-rt): the start of the FLASH region must be 4-byte aligned");
+ERROR(particle): the start of the FLASH region must be 4-byte aligned");
 
 ASSERT(ORIGIN(RAM) % 4 == 0, "
-ERROR(cortex-m-rt): the start of the RAM region must be 4-byte aligned");
+ERROR(particle): the start of the RAM region must be 4-byte aligned");
 
 ASSERT(__sdata % 4 == 0 && __edata % 4 == 0, "
-BUG(cortex-m-rt): .data is not 4-byte aligned");
+BUG(particle): .data is not 4-byte aligned");
 
 ASSERT(__sidata % 4 == 0, "
-BUG(cortex-m-rt): the LMA of .data is not 4-byte aligned");
+BUG(particle): the LMA of .data is not 4-byte aligned");
 
 ASSERT(__sbss % 4 == 0 && __ebss % 4 == 0, "
-BUG(cortex-m-rt): .bss is not 4-byte aligned");
-
-ASSERT(__sheap % 4 == 0, "
-BUG(cortex-m-rt): start of .heap is not 4-byte aligned");
+BUG(particle): .bss is not 4-byte aligned");
 
 /* ## .vector_table */
 ASSERT(__reset_vector == ADDR(.vector_table) + 0x8, "
-BUG(cortex-m-rt): the reset vector is missing");
+BUG(particle): the reset vector is missing");
 
 ASSERT(__eexceptions == ADDR(.vector_table) + 0x40, "
-BUG(cortex-m-rt): the exception vectors are missing");
+BUG(particle): the exception vectors are missing");
 
 ASSERT(SIZEOF(.vector_table) > 0x40, "
-ERROR(cortex-m-rt): The interrupt vectors are missing.
+ERROR(particle): The interrupt vectors are missing.
 Possible solutions, from most likely to less likely:
 - Link to a svd2rust generated device crate
-- Disable the 'device' feature of cortex-m-rt to build a generic application (a dependency
+- Disable the 'device' feature of particle to build a generic application (a dependency
 may be enabling it)
 - Supply the interrupt handlers yourself. Check the documentation for details.");
 
 /* ## .text */
 ASSERT(ADDR(.vector_table) + SIZEOF(.vector_table) <= _stext, "
-ERROR(cortex-m-rt): The .text section can't be placed inside the .vector_table section
+ERROR(particle): The .text section can't be placed inside the .vector_table section
 Set _stext to an address greater than the end of .vector_table (See output of `nm`)");
 
 ASSERT(_stext + SIZEOF(.text) < ORIGIN(FLASH) + LENGTH(FLASH), "
-ERROR(cortex-m-rt): The .text section must be placed inside the FLASH memory.
+ERROR(particle): The .text section must be placed inside the FLASH memory.
 Set _stext to an address smaller than 'ORIGIN(FLASH) + LENGTH(FLASH)'");
 
 /* # Other checks */
 ASSERT(SIZEOF(.got) == 0, "
-ERROR(cortex-m-rt): .got section detected in the input object files
+ERROR(particle): .got section detected in the input object files
 Dynamic relocations are not supported. If you are linking to C code compiled using
 the 'cc' crate then modify your build script to compile the C code _without_
 the -fPIC flag. See the documentation of the `cc::Build.pic` method for details.");
