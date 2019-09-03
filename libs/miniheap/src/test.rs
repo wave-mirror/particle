@@ -3,7 +3,10 @@
 // Use of this source code is governed by a MIT-style
 // license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT
+
 use super::*;
+use core::alloc::Layout;
+use std::mem::{align_of, size_of};
 use std::prelude::v1::*;
 
 fn new_heap() -> Heap {
@@ -17,12 +20,16 @@ fn new_heap() -> Heap {
 
 #[test]
 fn empty() {
-    let mut heap = Heap::empty();
+    let heap = Heap::empty();
     assert_eq!(heap.base, 0);
     assert_eq!(heap.size, 0);
 }
 
 #[test]
-fn new() {
+fn allocate_double_usize() {
     let mut heap = new_heap();
+    let size = size_of::<usize>() * 2;
+    let layout = Layout::from_size_align(size, align_of::<usize>());
+    let addr = heap.allocate_first_fit(layout.unwrap());
+    assert!(addr.is_ok());
 }

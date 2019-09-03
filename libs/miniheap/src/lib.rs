@@ -5,7 +5,7 @@
 // https://opensource.org/licenses/MIT
 
 #![feature(const_fn)]
-#![feature(alloc, allocator_api)]
+#![feature(allocator_api)]
 #![no_std]
 
 #[cfg(test)]
@@ -13,7 +13,7 @@ extern crate std;
 
 extern crate alloc;
 
-use alloc::alloc::{AllocErr, Layout};
+use alloc::alloc::{Alloc, AllocErr, Layout};
 use core::mem;
 use core::ptr::NonNull;
 use list::{Chunk, FreeChunkList};
@@ -79,6 +79,37 @@ impl Heap {
         let layout = Layout::from_size_align(size, layout.align()).unwrap();
 
         self.free_list.allocate_first_fit(layout)
+    }
+
+    /// Frees the given allocation. `ptr` must be a pointer returned
+    /// by a call to the `allocate_first_fit` function with identical
+    /// size and alignment. Undefined behavior may occur for invalid
+    /// arguments, thus this function is unsafe.
+    ///
+    /// This function walks the list of free memory blocks and inserts
+    /// the freed block at the correct place. if the freed block is
+    /// adjacent to another free block, the blocks are merged again.
+    /// This operation is in `O(N)` since the list needs to be sorted
+    /// by address.
+    pub unsafe fn deallocate(&mut self, ptr: NonNull<u8>, layout: Layout) {
+        let mut size = layout.size();
+        if size < FreeChunkList::min_size() {
+            size = FreeChunkList::min_size();
+        }
+        let size = align_up(size, mem::align_of::<Chunk>());
+        let layout = Layout::from_size_align(size, layout.align()).unwrap();
+
+        self.free_list.deallocate(ptr, layout);
+    }
+}
+
+unsafe impl Alloc for Heap {
+    unsafe fn alloc(&mut self, layout: Layout) -> Result<NonNull<u8>, AllocErr> {
+        self.allocate_first_fit(layout)
+    }
+
+    unsafe fn dealloc(&mut self, ptr: NonNull<u8>, layout: Layout) {
+        self.deallocate(ptr, layout)
     }
 }
 
